@@ -1,0 +1,859 @@
+#+TITLE: Emacs init file
+#+AUTHOR: Dacoda Strack
+
+* Basic Configuration
+** Personal information
+#+begin_src emacs-lisp
+(setq user-full-name "Dacoda Strack"
+      user-mail-address "dacoda.strack@gmail.com")
+#+end_src
+** Edit and load this init.org file
+#+begin_src emacs-lisp
+  (defun edit-init-file ()
+    (interactive) 
+    (find-file "~/.emacs.d/init.org"))
+
+  (defun load-init-file ()
+    (interactive)
+    (org-babel-load-file "~/.emacs.d/init.org"))
+
+  (global-set-key (kbd "C-c e") 'edit-init-file)
+  (global-set-key (kbd "C-c i") 'load-init-file)
+#+end_src
+** Packages
+*** Package repositories
+#+begin_src emacs-lisp
+(when (>= emacs-major-version 24)
+  (require 'package)
+  (package-initialize)
+  (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
+  )
+#+end_src
+
+** Keymap
+*** Basic Modifications
+#+begin_src emacs-lisp
+  (defvar my-keys-minor-mode-map (make-keymap) "my-keys-minor-mode keymap.")
+
+  (define-key my-keys-minor-mode-map (kbd "C-h") 'backward-char)
+  (define-key my-keys-minor-mode-map (kbd "C-l") 'forward-char)
+  (define-key my-keys-minor-mode-map (kbd "C-k") 'previous-line)
+  (define-key my-keys-minor-mode-map (kbd "C-j") 'next-line)
+  (define-key my-keys-minor-mode-map (kbd "M-h") 'backward-word)
+  (define-key my-keys-minor-mode-map (kbd "M-l") 'forward-word)
+  (define-key my-keys-minor-mode-map (kbd "M-k") 'scroll-down-command)
+  (define-key my-keys-minor-mode-map (kbd "M-j") 'scroll-up-command)
+  (define-key my-keys-minor-mode-map (kbd "s-h") 'backward-sentence)
+  (define-key my-keys-minor-mode-map (kbd "s-l") 'forward-sentence)
+  (define-key my-keys-minor-mode-map (kbd "C-c z") 'nil)
+  (define-key my-keys-minor-mode-map (kbd "C-x C-v") 'revert-buffer)
+  (define-key my-keys-minor-mode-map (kbd "C-c s") 'flyspell-buffer)
+
+  (define-minor-mode my-keys-minor-mode
+    "My personal minor mode" t " my-keys" 'my-keys-minor-mode-map)
+
+  (my-keys-minor-mode 1)
+#+end_src
+
+*** Swapping Functionality 
+**** Implemented
+#+begin_src emacs-lisp
+  (define-key my-keys-minor-mode-map (kbd "C-f") 'kill-whole-line)
+  (define-key my-keys-minor-mode-map (kbd "M-f") 'kill-sentence)
+#+end_src
+
+**** Possible implementation
+#+begin_src emacs-lisp
+  ;; (define-key my-keys-minor-mode-map (kbd "M-b") 'indent-new-comment-line)
+  ;; (define-key my-keys-minor-mode-map (kbd "C-p") 'recenter-top-bottom )
+  ;; (define-key my-keys-minor-mode-map (kbd "C-b") 'electric-new-line-and-maybe-indent)
+  ;; (define-key my-keys-minor-mode-map (kbd "M-n") 'downcase-word)
+#+end_src
+
+*** Mimicking motion in other modes
+**** Helm
+For =helm-find-files=, the defaults are 
+
+- C-j		helm-execute-persistent-action
+- C-k		helm-delete-minibuffer-contents
+
+This first is also mapped to =C-z=, so I won't be reassigning into to another. 
+
+#+begin_src emacs-lisp
+  (defun my-helm-find-files-after-init-hook ()
+    (define-key helm-find-files-map (kbd "C-k") 'helm-previous-line)
+    (define-key helm-find-files-map (kbd "C-j") 'helm-next-line)
+    (define-key helm-find-files-map (kbd "C-f") 'helm-delete-minibuffer-contents))
+
+  (add-hook 'helm-find-files-after-init-hook 'my-helm-find-files-after-init-hook)
+#+end_src
+
+** Miscellanea
+*** No tabbies!
+#+BEGIN_SRC emacs-lisp
+  (setq-default indent-tabs-mode nil)
+  (setq-default tab-width 4)
+#+END_SRC
+
+*** Better Scrolling
+#+begin_src emacs-lisp
+    (setq scroll-step 1)
+    (setq scroll-conservatively 10000)
+    (setq auto-window-vscroll nil)
+#+end_src
+
+*** Assume single space after sentence
+#+begin_src emacs-lisp
+(setq sentence-end-double-space nil)
+#+end_src
+
+*** Set backup directory
+#+begin_src emacs-lisp
+   (setq backup-directory-alist '(("." . "/home/dacoda/.emacs.d/backups")))
+   (setq auto-save-file-name-transforms
+         '((".*" "/home/dacoda/.emacs.d/autosaves")))
+#+end_src
+
+*** Disable unnecessary tool-bars/messages
+#+begin_src emacs-lisp
+  (tooltip-mode -1)
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+  (setq inhibit-startup-message t)
+  (set-fringe-mode '(0 . 7))
+#+end_src
+
+*** Disable truncate lines
+#+begin_src emacs-lisp
+(setq truncate-lines 1)
+#+end_src
+*** Change Japanese font
+#+begin_src emacs-lisp
+  (mapcar (lambda (character-set) (set-fontset-font "fontset-default"
+                                                    character-set
+                                                    '("M+ 1m" . "iso10646-1")))
+          '(japanese-jisx0208
+            japanese-jisx0208-1978
+            japanese-jisx0212
+            japanese-jisx0213-1
+            japanese-jisx0213-2
+            japanese-jisx0213.2004-1))
+#+end_src
+*** Font size
+#+begin_src emacs-lisp
+  (set-face-attribute 'default nil :height 90)
+#+end_src
+
+* Ace Window
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-x o") 'ace-window)
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+#+end_src
+
+* Web Mode
+#+begin_src emacs-lisp
+(require 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.dac\\'" . web-mode))
+
+(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+
+(defun my-web-mode-hook ()
+  "Hooks for Web mode."
+  (setq web-mode-markup-indent-offset 4)
+  (setq web-mode-css-indent-offset 4)
+  (setq web-mode-code-indent-offset 4)
+)
+(add-hook 'web-mode-hook  'my-web-mode-hook)
+
+#+end_src
+ 
+* CC Modes
+** Modifying indents
+Use 4 spaces for indents in C++
+#+begin_src emacs-lisp
+  (defun my-c++-mode-hook ()
+    (setq c-basic-offset 4)
+    (c-set-offset 'substatement-open 0)
+    (c-set-offset 'case-label '+))
+  (add-hook 'c++-mode-hook 'my-c++-mode-hook)
+#+end_src
+
+#+begin_src emacs-lisp
+  (setq c-default-style "linux"
+        c-basic-offset 4)
+#+end_src
+
+** Comments
+#+begin_src emacs-lisp
+  (defun my-c-mode-hook ()
+    (lambda () (setq-local comment-start "//"))
+    (lambda () (setq-local comment-end "")))
+
+  (add-hook 'c-mode-hook 'my-c-mode-hook)
+#+end_src
+** Open shader files with c-mode
+#+begin_src emacs-lisp
+  (add-to-list 'auto-mode-alist '("\\.glsl\\'" . c-mode))
+#+end_src
+* Evil
+#+begin_src emacs-lisp
+  (require 'evil)
+       (evil-mode 1)
+(require 'evil-mark-replace)
+#+end_src
+
+** Map =:= to =;=
+#+begin_src emacs-lisp
+  (define-key evil-normal-state-map (kbd "C-u") 'evil-scroll-up)
+  (define-key evil-normal-state-map ";" 'evil-ex)
+  (define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
+  (define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
+#+end_src
+
+** Map escape to keychord =jk=
+#+begin_src emacs-lisp
+(require 'key-chord)
+(key-chord-mode 1)
+(key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
+(key-chord-define evil-emacs-state-map  "jk" 'evil-normal-state)
+#+end_src
+
+** Change initial states for various modes 
+#+begin_src emacs-lisp
+  (evil-set-initial-state 'eww-mode 'emacs)
+#+end_src
+
+** Surround mode 
+#+begin_src emacs-lisp
+(require 'evil-surround)
+(global-evil-surround-mode 1)
+#+end_src
+
+* Helm
+#+begin_src emacs-lisp
+  (require 'helm-config)
+  (helm-mode 1)
+  (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
+  (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
+  (define-key helm-map (kbd "C-z")  'helm-select-action)
+#+end_src
+
+** Specify the use of helm for various things
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-x C-f") 'helm-find-files)
+  (global-set-key (kbd "C-x C-b") 'helm-buffers-list)
+  (global-set-key (kbd "C-x b") 'helm-buffers-list)
+  (global-set-key (kbd "M-x") 'helm-M-x)
+  (global-set-key (kbd "C-c h o") 'helm-occur)
+  (global-set-key (kbd "M-y") 'helm-show-kill-ring)
+#+end_src
+
+* Org-mode
+** Basic settings
+*** Required lines
+#+begin_src emacs-lisp
+(add-hook 'org-mode-hook 'turn-on-font-lock) ; not needed when global-font-lock-mode is on
+(global-set-key "\C-cl" 'org-store-link)
+(global-set-key "\C-ca" 'org-agenda)
+(global-set-key "\C-cb" 'org-iswitchb)
+#+end_src
+
+*** Log time when done
+#+begin_src emacs-lisp
+(setq org-log-done 'time)
+#+end_src
+*** Start up 
+#+begin_src emacs-lisp
+  (setq org-startup-indented t)
+  (setq org-indent-mode t)
+#+end_src
+
+*** Treat plain lists like headlines for org-cycle
+#+begin_src emacs-lisp
+(setq org-cycle-include-plain-lists 'integrate)
+#+end_src
+ 
+*** Open with chromium
+#+begin_src emacs-lisp
+(setq browse-url-browser-function 'browse-url-generic
+      browse-url-generic-program "chromium")
+#+end_src
+
+*** Allow for .odt export
+#+begin_src emacs-lisp
+(eval-after-load "org"
+  '(require 'ox-odt nil t))
+#+end_src
+
+** Loading markdown exporter
+#+begin_src emacs-lisp
+  (eval-after-load "org"
+    '(require 'ox-md nil t))
+#+end_src
+
+** LaTeX export settings
+I've decided to try and use both XeLaTeX and pdfLaTeX with org-mode.
+For this, there are a few things I need to keep in mind when using
+XeLaTeX as noted [[http://tex.stackexchange.com/questions/2984/frequently-loaded-packages-differences-between-pdflatex-and-xelatex][here]]. 
+
+- Don't use inputenc or fontenc -- save file as UTF-8 and use fontspec instead
+- Use polyglossia instead of babel
+- OpenType math support -- use unicode-math instead of amsfonts/amssymb
+- No need to use the xltxtra package anymore
+- Don't load the textcomp package -- if I need it, load the xunicode package
+
+I'm setting the value for =org-latex-pdf-process= in such a way that
+it executes XeLaTeX first. For any file where I'd like to use only
+pdfLaTeX I change the file's local =org-latex-pdf-process= to execute
+pdfLaTeX.
+
+*** Use XeTeX
+Keep track of the variable name -- "org-latex-pdf-process" vs. "org-latex-to-pdf-process"
+
+If you'd like to use XeTeX by default, here is the command.
+#+begin_src emacs-lisp
+(setq org-latex-pdf-process '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+		  "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+		  "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+#+end_src
+
+*** Redefining standard packages
+I've removed the inputenc default package, because it's causing problems with XeTeX
+#+begin_src emacs-lisp
+(setq org-latex-default-packages-alist '(("T1" "fontenc" t)
+					 ("" "orgmode" t)))
+(setq org-latex-hyperref-template "")
+(setq org-e-latex-with-hyperref 'nil)
+#+end_src
+*** Adding classes
+
+**** Adding class for EECS 70LA lab (might use in future for other labs)
+#+begin_src emacs-lisp
+  (require 'ox-latex)
+  (setq org-export-latex-listings t)
+
+  (add-to-list 'org-latex-classes
+               '("eecslab"
+                 "\\documentclass{eecslab}"
+                 ("\\section{%s}" . "\\section*{%s}")
+                 ("\\subsection{%s}" . "\\subsection*{%s}")
+                 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                 ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+#+end_src
+
+**** Adding beamer class
+#+begin_src emacs-lisp
+;(add-to-list 'org-latex-classes
+;            '("beamer"
+;             "\\documentclass\[presentation\]\{beamer\}"
+;            ("\\section\{%s\}" . "\\section*\{%s\}")
+;           ("\\subsection\{%s\}" . "\\subsection*\{%s\}")
+;          ("\\subsubsection\{%s\}" . "\\subsubsection*\{%s\}")))
+#+end_src
+
+**** Adding class for homework assignments with numbers 
+#+begin_src emacs-lisp
+  (require 'ox-latex)
+    (setq org-export-latex-listings t)
+
+    (add-to-list 'org-latex-classes
+                 '("hw-ass"
+                   "\\documentclass[letterpaper,hidelinks]{article}
+  \\usepackage[margin=1in]{geometry}
+  \\usepackage{amsmath}
+  \\usepackage{graphicx}
+  \\usepackage{mathtools} % for dcases
+  "
+                   ("\\begin{itemize}\n\\item[%s]" "\\end{itemize}")
+                   ("\\begin{itemize}\n\\item[%s]" "\\end{itemize}")
+                   ("\\begin{itemize}\n\\item[%s]" "\\end{itemize}")))
+#+end_src
+
+*** Open .pdf's with evince in org
+#+begin_src emacs-lisp
+(eval-after-load "org"
+  '(progn
+     ;; .txt files aren't in the list initially, but in case that changes
+     ;; in a future version of org, use if to avoid errors
+     (if (assoc "\\.txt\\'" org-file-apps)
+         (setcdr (assoc "\\.txt\\'" org-file-apps) "notepad.exe %s")
+       (add-to-list 'org-file-apps '("\\.txt\\'" . "notepad.exe %s") t))
+     ;; Change .pdf association directly within the alist
+     (setcdr (assoc "\\.pdf\\'" org-file-apps) "evince %s")))
+#+end_src
+
+*** Use smart quotes
+#+begin_src emacs-lisp
+(setq org-export-with-smart-quotes t)
+#+end_src
+
+* Projectile
+#+begin_src emacs-lisp
+(setq projectile-enable-caching t)
+#+end_src
+
+* Paredit
+#+begin_src emacs-lisp
+  (eval-after-load "paredit"
+    #'(progn (define-key paredit-mode-map (kbd "C-j") nil)
+             (define-key paredit-mode-map (kbd "C-k") nil)
+             (define-key paredit-mode-map (kbd "C-f") 'paredit-kill)
+             (define-key paredit-mode-map (kbd "C-M-h") 'paredit-backward)
+             (define-key paredit-mode-map (kbd "C-M-l") 'paredit-forward)))
+
+  (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
+
+  (add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
+  (add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
+  (add-hook 'ielm-mode-hook             #'enable-paredit-mode)
+  (add-hook 'lisp-mode-hook             #'enable-paredit-mode)
+  (add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
+  (add-hook 'scheme-mode-hook           #'enable-paredit-mode)
+  (add-hook 'clojure-mode-hook           #'enable-paredit-mode)
+#+end_src
+* Isearch
+#+begin_src emacs-lisp
+(setq isearch-lax-whitespace t)
+(setq isearch-regexp-lax-whitespace t)
+(setq search-whitespace-regexp "[ \t\r\n]+")
+#+end_src
+
+* Python
+#+begin_src emacs-lisp
+(add-hook 'python-mode-hook
+      (lambda ()
+        
+        (setq-default python-indent 4)))
+#+end_src
+** Use a virtualenv for Jedi autocomplete
+# (defun reinstall-mck ()
+#   (interactive)
+#   (shell-command "source ~/mckinley/edison_venv/bin/activate && yes | pip uninstall mck && pip install /home/dacoda/mckinley/edison/packages/mck"))
+
+# (setq python-shell-process-environment
+#       (list
+#        (format "PATH=%s" (mapconcat
+#                           'identity
+#                           (reverse
+#                            (cons (getenv "PATH")
+#                                  '("/home/dacoda/mckinley/edison_venv/bin/")))
+#                           ":"))
+#        "VIRTUAL_ENV=/home/dacoda/mckinley/edison_venv/"))
+# (setq python-shell-exec-path (list "/home/dacoda/mckinley/edison_venv/bin/"))
+# (setq python-shell-virtualenv-path "/home/dacoda/mckinley/edison_venv/")
+# (setq python-environment-directory "/home/dacoda/mckinley/edison_venv/")
+# (setq jedi:environment-root "/home/dacoda/mckinley/edison_venv/")
+* Mode line
+#+begin_src emacs-lisp
+(setq-default mode-line-format
+              '(" "
+                ;; mode-line-modified
+                ;; mode-line-remote
+                mode-line-buffer-identification
+		mode-line-position
+                " " mode-line-modes))
+#+end_src
+* italki pasting 
+This is to make editing journals easier for italki 
+#+begin_src emacs-lisp 
+  ;; (defun italki-corrections () (interactive) (switch-to-buffer (get-buffer-create "*Italki Corrections*")) (if (= (buffer-size) 0) (insert "#+OPTIONS: author:nil title:nil date:nil ::nil\n#+HTML_HEAD_INCLUDE_DEFAULT_STYLE: nil\n\n") (org-mode))) #+end_src #+begin_src emacs-lisp (defun copy-org-to-clipboard () (interactive) (let ((org-html-postamble nil) (org-html-divs ()) (org-html-head-include-default-style nil) (org-html-head-include-scripts nil) (org-html-xml-declaration nil) (org-html-viewport nil) (old-buffer (current-buffer)) (old-window-configuration (current-window-configuration)) (old-point (point)) (footnotes-point (search-forward "* Footnotes" nil t))) (save-buffer) (with-temp-buffer (insert-buffer-substring old-buffer) (beginning-of-buffer) (progn ;; Replacements before export (replace-regexp "\\([/*+]?\\)\\[fn:\\([0-9]+\\)\\]" "^{\\2}\\1" nil (point) (if footnotes-point footnotes-point (point-max))) (replace-regexp "\\[fn:\\([0-9]+\\)\\]" "@@html:<sup>@@\\1@@html:</sup>@@") (beginning-of-buffer) (replace-regexp "* Footnotes" "@@html:<span style=\"font-size: 125%\">@@Footnotes@@html:</span>@@")) (org-html-export-as-html) ;; Replacements after export (let ((delete-bound (search-forward "<nil id=\"nil\">")) (fill-column (point-max))) (beginning-of-buffer) (delete-forward-char delete-bound) (search-forward "</nil>") (move-beginning-of-line 1) (delete-forward-char (- (point-max) (point))) (indent-region (point-min) (point-max)) (beginning-of-buffer) (replace-regexp "<p>?\n" "<p>") (beginning-of-buffer) (replace-regexp " </p>" "</p>") (beginning-of-buffer) (replace-regexp " " "") (end-of-buffer) (insert "<span style=\"font-size: 125%\">Comments</span>")) (clipboard-kill-ring-save (point-min) (point-max))) ;; (kill-this-buffer) (set-window-configuration old-window-configuration) (goto-char old-point))) #+end_src ** Increment number at point #+begin_src emacs-lisp (defun increment-number-at-point () (interactive) (skip-chars-backward "0123456789") (or (looking-at "[0123456789]+") (error "No number at point")) (replace-match (number-to-string (1+ (string-to-number (match-string 0)))))) 
+#+end_src
+* Slime
+#+begin_src emacs-lisp
+  (setq slime-enable-evaluate-in-emacs t)
+  (setq inferior-lisp-program "/usr/sbin/sbcl")
+  (setq slime-contribs '(slime-fancy))
+  (setq slime-lisp-implementations
+        '((sbcl ("/usr/bin/sbcl" "--control-stack-size 5"))))
+#+end_src
+
+** Orihime
+#+BEGIN_SRC emacs-lisp
+  (load "/home/dacoda/quicklisp/local-projects/orihime/orihime.el")
+#+END_SRC
+
+** Nutrition
+#+BEGIN_SRC emacs-lisp
+  (load "/home/dacoda/quicklisp/local-projects/nutrition/nutrition.el")
+  (defun open-nutrition ()
+    (interactive)
+    (find-file "/home/dacoda/quicklisp/local-projects/nutrition/nutrition.lisp"))
+#+END_SRC
+
+* org-jira
+We need to reset the headers every time they expire. I've been getting
+the headers by observing network calls through Chromium's developers'
+console.
+#+BEGIN_SRC emacs-lisp
+  (setq jiralib-url "https://mckinleyiot.atlassian.net")
+
+  (setq jiralib-token
+        `("Cookie" . ,(format "cookie: _sio=462d8ccc-6114-4551-bc00-611eafe92b80; __atl_path=b1745bc7ae634c558bc906d4510c0b69; atlassian.xsrf.token=BB64-J672-XZ2W-RVKQ|f1cbaae37161039307807d8e976299622b167b04|lin; __utma=64259251.716835040.1487306192.1505841222.1505843303.23; __utmc=64259251; __utmz=64259251.1487306192.1.1.utmcsr=mail.mckinleyequipment.com|utmccn=(referral)|utmcmd=referral|utmcct=/owa/redir.aspx; cloud.session.token=eyJraWQiOiJzZXNzaW9uLXNlcnZpY2VcL3Nlc3Npb24tc2VydmljZSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI1NTcwNTg6YjU2Y2NmNDgtNjhjZC00OTgxLWIzY2YtNzNkY2MzN2U4Yzg4IiwiYXVkIjoiYXRsYXNzaWFuIiwiaW1wZXJzb25hdGlvbiI6W10sIm5iZiI6MTUwNjAyMDE2MywicmVmcmVzaFRpbWVvdXQiOjE1MDYwMjA3NjMsImlzcyI6InNlc3Npb24tc2VydmljZSIsInNlc3Npb25JZCI6ImM2NjkwZDA4LTQ1ODItNGEwOC1hMjE1LWVkMjE4YzkxM2NlNyIsImV4cCI6MTUwODYxMjE2MywiaWF0IjoxNTA2MDIwMTYzLCJlbWFpbCI6ImRhY29kYS5zdHJhY2tAbWNraW5sZXllcXVpcG1lbnQuY29tIiwianRpIjoiYzY2OTBkMDgtNDU4Mi00YTA4LWEyMTUtZWQyMThjOTEzY2U3In0.gRvkHVVJKr5O-INmB8tAdR6lqf0dkJAmrYgX2tEwM_EujwSh2aKik2_6LkP9Lq2bqLaY9uc58grMxgn3ZmUFlGMX13CT9WAY5_NypI8Af1DQi9nsFH7Ze6kWwms3wTHEseGPI2-6jLkBmGWGLcrQs31xN6YvmEbJxNNUryty2YIbyIWyk_Z1Z2ffeNDrXKslDOEnvlgMrbzYwr7j7hkdQxYKRFZtcCqqCrRUWKojoeJRtaGyG4BymU3MIVnfLrvVXG5CgRLfT4ElI57v65-JQNLfwuk1ZLgyTMnv6OrjJ3Ry29B3aDElXlF5dZEY9aM8WlyLUx7Rbhts73YMVcS-AQ")))
+#+END_SRC
+* Website org exporting
+Taking inspiration from the following links: 
+
+https://github.com/pdixon/emacs.d/blob/master/lisp/pd-html.el
+
+https://emacs.stackexchange.com/questions/10771/how-to-use-my-custom-layout-for-generating-html-files-from-org-files-instead-of
+
+I should probably learn how to more easily format this HTML rather
+than having to do fancy processing for each line... It's a bit
+annoying, really... hahaha :p 
+
+#+BEGIN_SRC emacs-lisp
+  (org-export-define-derived-backend 'website-html 'html
+    :translate-alist '((template . website-html-template)
+                       (src-block . pygments-org-html-code)
+                       (example-block . pygments-org-html-code)))
+
+
+  ;; Path for pygments or command name
+  (defvar pygments-path "pygmentize")
+
+  (defun pygments-org-html-code (code contents info)
+    ;; Generating tmp file path.
+    ;; Current date and time hash will ideally pass our needs.
+    (setq temp-source-file (format "/tmp/pygmentize-%s.txt"(md5 (current-time-string))))
+    ;; Writing block contents to the file.
+    (with-temp-file temp-source-file (insert (org-element-property :value code)))
+    ;; Exectuing the shell-command an reading an output
+    (shell-command-to-string (format "%s -l \"%s\" -f html %s"
+                                     pygments-path
+                                     (or (org-element-property :language code)
+                                         "")
+                                     temp-source-file)))
+
+  (defun website-html-template (contents info)
+    (concat 
+     "<!DOCTYPE html>\n"
+     "<html>\n"
+     (format "<title>%s</title>\n"
+             (org-export-data (or (plist-get info :title) "") info))
+     "<meta charset=\"UTF-8\">\n"
+     "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+     "<link rel=\"stylesheet\" href=\"https://www.w3schools.com/w3css/4/w3.css\">\n"
+     "<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css?family=Lato\">\n"
+     "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\">\n"
+     "<link rel=\"stylesheet\" href=\"landing-page.css\">\n"
+     "<link rel=\"stylesheet\" href=\"pygments.css\">\n"
+     "<script type=\"text/javascript\" async src=\"https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML\"></script>\n"
+     "<style>\n"
+     "body,h1,h2,h3,h4,h5,h6 {font-family: \"Lato\", sans-serif;}\n"
+     "body, html {\n"
+     "    height: 100%;\n"
+     "    color: #777;\n"
+     "    line-height: 1.8;\n"
+     "}\n"
+     "\n"
+     "/* Create a Parallax Effect */\n"
+     ".bgimg-1, .bgimg-2, .bgimg-3 {\n"
+     "    background-attachment: fixed;\n"
+     "    background-position: center;\n"
+     "    background-repeat: no-repeat;\n"
+     "    background-size: cover;\n"
+     "}\n"
+     "\n"
+     "/* First image (Logo. Full height) */\n"
+     ".bgimg-1 {\n"
+     "    background-image: url('/images/purple-flowers.jpg');\n"
+     "    min-height: 100%;\n"
+     "}\n"
+     "\n"
+     "/* Second image (Portfolio) */\n"
+     ".bgimg-2 {\n"
+     "    background-image: url(\"/images/sakura.jpg\");\n"
+     "    min-height: 400px;\n"
+     "}\n"
+     "\n"
+     "/* Third image (Contact) */\n"
+     ".bgimg-3 {\n"
+     "    background-image: url(\"/images/mountains.jpg\");\n"
+     "    min-height: 400px;\n"
+     "}\n"
+     "\n"
+     ".w3-wide {letter-spacing: 10px;}\n"
+     ".w3-hover-opacity {cursor: pointer;}\n"
+     "\n"
+     "#myNavbar {\n"
+     "    /* rgb fallback */\n"
+     "    background-color: rgb(144, 144, 144);\n"
+     "    background-color: rgba(255, 255, 255, .8);\n"
+     "}\n"
+     "\n"
+     "#navDemo .w3-bar-item {\n"
+     "    background-color: rgb(144, 144, 144);\n"
+     "    background-color: rgba(255, 255, 255, .8);\n"
+     "}\n"
+     "\n"
+     "#toggler {\n"
+     "    background-color: transparent;\n"
+     "}\n"
+     "\n"
+     ".navbarButton {\n"
+     "    background-color: transparent;\n"
+     "}\n"
+     "\n"
+     "/* Turn off parallax scrolling for tablets and phones */\n"
+     "@media only screen and (max-device-width: 1024px) {\n"
+     "    .bgimg-1, .bgimg-2, .bgimg-3 {\n"
+     "        background-attachment: scroll;\n"
+     "    }\n"
+     "}\n"
+     "</style>\n"
+     "<body>\n"
+     "<div class=\"w3-top\">\n"
+     "  <div class=\"w3-bar\" id=\"myNavbar\">\n"
+     "    <a id=\"toggler\" class=\"w3-bar-item w3-button w3-hover-black w3-hide-medium w3-hide-large w3-right\" href=\"javascript:void(0);\" onclick=\"toggleFunction()\" title=\"Toggle Navigation Menu\">\n"
+     "      <i class=\"fa fa-bars\"></i>\n"
+     "    </a>\n"
+     "    <a href=\"#home\" class=\"w3-bar-item w3-button navbarButton\">HOME</a>\n"
+     "    <a href=\"#about\" class=\"w3-bar-item w3-button w3-hide-small navbarButton\"><i class=\"fa fa-user\"></i> ABOUT</a>\n"
+     "    <a href=\"#portfolio\" class=\"w3-bar-item w3-button w3-hide-small navbarButton\"><i class=\"fa fa-th\"></i> PORTFOLIO</a>\n"
+     "    <a href=\"#contact\" class=\"w3-bar-item w3-button w3-hide-small navbarButton\"><i class=\"fa fa-envelope\"></i> CONTACT</a>\n"
+     "    <a href=\"#\" class=\"w3-bar-item w3-button w3-hide-small w3-right w3-hover-red navbarButton\">\n"
+     "      <i class=\"fa fa-search\"></i>\n"
+     "    </a>\n"
+     "  </div>\n"
+     "\n"
+     "  <!-- Navbar on small screens -->\n"
+     "  <div id=\"navDemo\" class=\"w3-bar-block w3-hide w3-hide-large w3-hide-medium\">\n"
+     "    <a href=\"#about\" class=\"w3-bar-item w3-button\" onclick=\"toggleFunction()\">ABOUT</a>\n"
+     "    <a href=\"#portfolio\" class=\"w3-bar-item w3-button\" onclick=\"toggleFunction()\">PORTFOLIO</a>\n"
+     "    <a href=\"#contact\" class=\"w3-bar-item w3-button\" onclick=\"toggleFunction()\">CONTACT</a>\n"
+     "    <a href=\"#\" class=\"w3-bar-item w3-button\">SEARCH</a>\n"
+     "  </div>\n"
+     "</div>\n"
+     "\n"
+     "<div class=\"w3-content w3-container w3-padding-64\" id=\"about\">\n"
+     "<style>\n"
+     ".highlighttable td:last-child {\n"
+     "    width: 100%;\n"
+     "    }\n"
+     "\n"
+     ".highlighttable {\n"
+     "    background-color: #f8f8f8;\n"
+     "    }\n"
+     "\n"
+     ".highlighttable pre {\n"
+     "    margin: 0;\n"
+     "    overflow: auto;\n"
+     "    }\n"
+     "\n"
+     ".linenodiv pre {\n"
+     "    background-color: #f8f8f8;\n"
+     "    }\n"
+     "\n"
+     ".code-snippet {\n"
+     "    overflow:auto;\n"
+     "    }\n"
+     "</style>\n"
+     "\n"
+     (format "<h1>%s</h1>\n"
+             (org-export-data (or (plist-get info :title) "") info))
+     contents
+     "\n"
+     "</div>\n"
+     "\n"
+     "</body>\n"
+     "</html>\n")
+    )
+
+  (defun website-html-publish-to-html (plist filename pub-dir)
+    "Publish an org file to pd custom HTML.
+  FILENAME is the filename of the Org file to be published.  PLIST
+  is the property list for the given project.  PUB-DIR is the
+  publishing directory.
+  Return output file name."
+    (org-publish-org-to 'website-html filename ".html" plist pub-dir))
+
+  (defun org-website-export-as-website
+  (&optional async subtreep visible-only body-only ext-plist)
+    (interactive)
+    (org-export-to-buffer 'website-html "*Org website-html Export*"
+      async subtreep visible-only body-only ext-plist (lambda () (web-mode))))
+
+  (defun org-website-export-to-website
+    (&optional async subtreep visible-only body-only ext-plist)
+    (interactive)
+    (let ((outfile (org-export-output-file-name ".html" subtreep)))
+      (org-export-to-file 'website-html outfile
+        async subtreep visible-only body-only ext-plist)))
+#+END_SRC
+
+* Humanities paper org export
+
+#+BEGIN_SRC emacs-lisp
+  (org-export-define-derived-backend 'paper-latex 'latex
+    :translate-alist '((template . paper-latex-template)))
+
+  (defun paper-latex-template (contents info)
+    (concat 
+     "\\documentclass{article}\n"
+     "\\usepackage{geometry}[letterpaper,margin=1in]\n"
+     "\\usepackage{setspace}\n"
+     "\\doublespacing\n"
+     "\\pagenumbering{gobble}\n"
+     "\\begin{document}\n"
+     "\\hfill Dacoda Strack\n"
+     "\\begin{center}\n"
+     (format "%s"
+             (org-export-data (or (plist-get info :title) "") info))
+     "\\end{center}\n"
+     "\n"
+     contents
+     "\\end{document}\n"
+     ))
+
+  (defun paper-latex-publish-to-latex (plist filename pub-dir)
+    "Publish an org file to pd custom HTML.
+  FILENAME is the filename of the Org file to be published.  PLIST
+  is the property list for the given project.  PUB-DIR is the
+  publishing directory.
+  Return output file name."
+    (org-publish-org-to 'paper-latex filename ".tex" plist pub-dir))
+
+  (defun org-paper-latex-export-as-latex
+  (&optional async subtreep visible-only body-only ext-plist)
+    (interactive)
+    (org-export-to-buffer 'paper-latex "*Org paper-latex Export*"
+      async subtreep visible-only body-only ext-plist (lambda () (LaTeX-mode))))
+
+  (defun org-paper-latex-export-to-latex
+    (&optional async subtreep visible-only body-only ext-plist)
+    (interactive)
+    (let ((outfile (org-export-output-file-name ".tex" subtreep)))
+      (org-export-to-file 'paper-latex outfile
+        async subtreep visible-only body-only ext-plist)))
+#+END_SRC
+* rtags, company, etc. 
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'load-path "/home/dacoda/development/sans-abri/rtags/src")
+
+  (require 'rtags)
+  (require 'company-rtags)
+  (require 'flycheck-rtags)
+
+  (setq company-idle-delay .2)
+  (setq rtags-display-result-backend 'helm)
+  (setq rtags-completions-enabled t)
+  (require 'slime-company)
+  (slime-company-init)
+  (eval-after-load 'company
+    '(mapcar (lambda (item) (add-to-list 'company-backends item)) (list 'company-rtags 'company-slime)))
+
+  (defun my-flycheck-rtags-setup ()
+    (flycheck-select-checker 'rtags)
+    (setq-local flycheck-highlighting-mode nil) ;; RTags creates more accurate overlays.
+    (setq-local flycheck-check-syntax-automatically nil))
+
+  (add-hook 'c-mode-hook #'my-flycheck-rtags-setup)
+  (add-hook 'c++-mode-hook #'my-flycheck-rtags-setup)
+  (add-hook 'objc-mode-hook #'my-flycheck-rtags-setup)
+
+  (global-flycheck-mode)
+  (global-company-mode)
+#+END_SRC
+* Exercise export
+#+BEGIN_SRC emacs-lisp
+  (org-export-define-derived-backend 'exercise-html 'html
+    :translate-alist '((table-row . exercise-html-table-row)))
+
+  (defun exercise-html-table-row (table-row contents info)
+    "Transcode a TABLE-ROW element from Org to HTML.
+  CONTENTS is the contents of the row.  INFO is a plist used as a
+  communication channel."
+    ;; Rules are ignored since table separators are deduced from
+    ;; borders of the current row.
+    (when (eq (org-element-property :type table-row) 'standard)
+      (let* ((rowgroup-number (org-export-table-row-group table-row info))
+             (row-number (org-export-table-row-number table-row info))
+             (start-rowgroup-p
+              (org-export-table-row-starts-rowgroup-p table-row info))
+             (end-rowgroup-p
+              (org-export-table-row-ends-rowgroup-p table-row info))
+             ;; `top-row-p' and `end-rowgroup-p' are not used directly
+             ;; but should be set so that `org-html-table-row-tags' can
+             ;; use them (see the docstring of this variable.)
+             (top-row-p (and (equal start-rowgroup-p '(top))
+                             (equal end-rowgroup-p '(below top))))
+             (bottom-row-p (and (equal start-rowgroup-p '(above))
+                                (equal end-rowgroup-p '(bottom above))))
+             (rowgroup-tags
+              (cond
+               ;; Case 1: Row belongs to second or subsequent rowgroups.
+               ((not (= 1 rowgroup-number))
+                '("<tbody>" . "\n</tbody>"))
+               ;; Case 2: Row is from first rowgroup.  Table has >=1 rowgroups.
+               ((org-export-table-has-header-p
+                 (org-export-get-parent-table table-row) info)
+                '("<thead>" . "\n</thead>"))
+               ;; Case 2: Row is from first and only row group.
+               (t '("<tbody>" . "\n</tbody>")))))
+        (concat
+         ;; Begin a rowgroup?
+         (when start-rowgroup-p (car rowgroup-tags))
+         ;; Actual table row
+         (concat "\n" (eval (car org-html-table-row-tags))
+                 ;; If this is the first rowgroup
+                 ;; If there is an EXERCISE attribute, then make sure to output it
+                 (if (= 1 rowgroup-number)
+                     (let* ((parent (org-export-get-parent-table table-row))
+                            (table-attributes (org-export-read-attribute :attr_html parent))
+                            (exercise-string (plist-get table-attributes :exercise)))
+                       (concat "\n"
+                               "<th scope=\"col\" align=\"center\" colspan=\"3\">"
+                               "\n"
+                               exercise-string
+                               "</th>"
+                               "\n"
+                               "</tr>"
+                               "\n"
+                               "<tr>"))
+                   nil)
+                 contents
+                 "\n"
+                 (eval (cdr org-html-table-row-tags)))
+         ;; End a rowgroup?
+         (when end-rowgroup-p (cdr rowgroup-tags))))))
+
+  (defun exercise-html-publish-to-html (plist filename pub-dir)
+    "Publish an org file to pd custom HTML.
+    FILENAME is the filename of the Org file to be published.  PLIST
+    is the property list for the given project.  PUB-DIR is the
+    publishing directory.
+    Return output file name."
+    (org-publish-org-to 'exercise-html filename ".html" plist pub-dir))
+
+  (defun org-exercise-html-export-as-html
+      (&optional async subtreep visible-only body-only ext-plist)
+    (interactive)
+    (org-export-to-buffer 'exercise-html "*Org exercise-html Export*"
+      async subtreep visible-only body-only ext-plist (lambda () (web-mode))))
+
+  (defun org-exercise-html-export-to-html
+      (&optional async subtreep visible-only body-only ext-plist)
+    (interactive)
+    (let ((outfile (org-export-output-file-name ".html" subtreep)))
+      (org-export-to-file 'exercise-html outfile
+        async subtreep visible-only body-only ext-plist)))
+#+END_SRC
+
+* Gnuplot
+#+BEGIN_SRC emacs-lisp
+   (add-to-list 'auto-mode-alist '("\\.gplt?\\'" . gnuplot-mode))
+#+END_SRC
+* C-mera
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'load-path "/home/dacoda/quicklisp/local-projects/c-mera/util/emacs/")
+  (require 'cm-mode)
+#+END_SRC
